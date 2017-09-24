@@ -1,0 +1,157 @@
+---
+title: "Remove_Later"
+output: html_document
+---
+# Test
+```{r}
+year = 1987
+FILE = paste('E:/FlightData/', 1987, ".csv", sep = '')
+print((FILE))
+Dt <- readr::read_csv(file = FILE)
+head(Dt, n=20)
+```
+
+# Formal
+```{r}
+library(dplyr)
+library(tidyverse)
+
+Monthly_Delay_Summa <- data.frame()
+Day_of_Wk_Delay_Summa <- data.frame()
+
+for(i in 1987:2008){
+  year = i
+  FILE = paste('E:/FlightData/', i, ".csv", sep = '')
+  Dt <- readr::read_csv(file = FILE)
+  
+  # Monthly Summarise
+  new_Monthly_Delay_Summa <- Dt %>% 
+    dplyr::group_by(Month) %>% 
+    dplyr::summarise(Count = n(), 
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Arr_Delay = mean(ArrDelay, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(Year = year)
+  
+  # Day of Week Summarise
+  new_Day_of_Wk_Delay_Summa <- Dt %>% 
+    dplyr::group_by(DayOfWeek) %>% 
+    dplyr::summarise(Count = n(),
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Delay = mean(ArrDelay, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(DayOfWeek = c("Mon","Tue","Wed","Thur","Fri","Sat","Sun")) %>% 
+    dplyr::mutate(Year = year)
+  
+  # Remove the data and clear the memory
+  rm(Dt)
+  
+  Monthly_Delay_Summa <- rbind(Monthly_Delay_Summa, new_Monthly_Delay_Summa)
+  Day_of_Wk_Delay_Summa <- rbind(Day_of_Wk_Delay_Summa, new_Day_of_Wk_Delay_Summa)
+}
+```
+
+# Save the summarised data as csv file
+```{r}
+write.csv(Day_of_Wk_Delay_Summa, "Day_Summa.csv")
+write.csv(Monthly_Delay_Summa, "Month_Summa.csv")
+
+```
+
+
+
+# Visualizations
+## Day of Week
+```{r}
+attach(Day_of_Wk_Delay_Summa)
+
+CLS = c('Departure Delay' = 'red', 'Arrival Delay' = 'blue')
+day_plot <- ggplot(Day_of_Wk_Delay_Summa,
+       aes(x = factor(DayOfWeek), 
+           group = Year)) +
+  # dep
+  geom_point(aes(y = Avg_Dep_Delay, color = 'Departure Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Dep_Delay, color='Departure Delay')) +
+  # arr
+  geom_point(aes(y = Avg_Delay, color = 'Arrival Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Delay, color = 'Arrival Delay')) +
+  facet_wrap(~Year) +
+  scale_colour_manual(name=" ",values = CLS) +
+  theme_classic() +
+  labs(x = 'Day of Week', y = 'Average Delay (in Minutes)',
+       title = 'Average Delay Time in each Day of a Week',
+       subtitle = 'from 1987 to 2008') +
+  theme(axis.text.x = element_text(size = 8),
+        plot.title = element_text(size = 16),
+        plot.subtitle = element_text(size = 10))
+ggsave('Day_plot.png', day_plot, width = 12, height = 6) 
+  
+```
+## Monthly
+```{r}
+attach(Monthly_Delay_Summa)
+month_plot <- ggplot(Monthly_Delay_Summa,
+       aes(x = factor(Month), 
+           y = Avg_Dep_Delay,
+           group = Year)) +
+  # dep
+  geom_point(aes(y = Avg_Dep_Delay, color = 'Departure Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Dep_Delay, color='Departure Delay')) +
+  # arr
+  geom_point(aes(y = Avg_Arr_Delay, color = 'Arrival Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Arr_Delay, color = 'Arrival Delay')) +
+  facet_wrap(~Year) +
+  scale_colour_manual(name=" ",values = CLS) +
+  theme_classic() +
+  labs(x = 'Month', y = 'Average Delay (in Minutes)',
+       title = 'Average Delay Time in each Month',
+       subtitle = 'from 1987 to 2008') +
+  theme(axis.text.x = element_text(size = 8),
+        plot.title = element_text(size = 16),
+        plot.subtitle = element_text(size = 10))
+ggsave('Month_plot.png', month_plot, width = 12, height = 6) 
+```
+
+
+## Integrated Time Series Plot
+```{r}
+Inte_Month_Plot <- Monthly_Delay_Summa %>% 
+  mutate(Date = as.Date(as.character(Year*10000 + Month*100 + 15),'%Y%m%d')) %>% 
+  ggplot(aes(x = Date, group = Year)) +
+  
+  # dep
+  geom_point(aes(y = Avg_Dep_Delay, color = 'Departure Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Dep_Delay, color='Departure Delay')) +
+  
+  # arr
+  geom_point(aes(y = Avg_Arr_Delay, color = 'Arrival Delay'), size = 0.5) +
+  geom_line(aes(y = Avg_Arr_Delay, color = 'Arrival Delay')) +
+  
+  scale_colour_manual(name=" ",values = CLS) +
+  scale_x_date(date_breaks = '1 year', date_labels = '%y') +
+  theme_classic() +
+  labs(x = 'Year', y = 'Average Delay (in Minutes)',
+       title = 'Average Delay in Minutes from 1987 to 2008') +
+  theme(axis.text.x = element_text(size = 8),
+        plot.title = element_text(size = 16))
+ggsave('Inte_Month_plot.png', Inte_Month_Plot, width = 20, height = 4) 
+```
+
