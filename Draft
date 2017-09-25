@@ -114,3 +114,6 @@ for(i in 1998:2008){
   Arr_All_Dt <- rbind(Arr_All_Dt, New_Arr_All_Dt)
 
 }
+
+write.csv(Dep_All_Dt, "All_2_hour_Dep_Summa_from98to08.csv")
+write.csv(Arr_All_Dt, "All_2_hour_Arr_Summa_from98to08.csv")
