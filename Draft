@@ -115,5 +115,8 @@ for(i in 1998:2008){
 
 }
 
-write.csv(Dep_All_Dt, "All_2_hour_Dep_Summa_from98to08.csv")
-write.csv(Arr_All_Dt, "All_2_hour_Arr_Summa_from98to08.csv")
+write.csv(Dep_All_Dt, "CRS_All_2_hour_Dep_Summa_from87to97.csv")
+write.csv(Arr_All_Dt, "CRS_All_2_hour_Arr_Summa_from87to97.csv")
+
+write.csv(Day_Dep, "real_All_2_hour_Dep_Summa_from87to97.csv")
+write.csv(Day_Arr, "real_All_2_hour_Arr_Summa_from87to97.csv")
