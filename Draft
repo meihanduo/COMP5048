@@ -1,0 +1,116 @@
+library(tidyverse)
+library(lubridate)
+
+Day_Dep <- data.frame()
+Day_Arr <- data.frame()
+Dep_All_Dt <- data.frame()
+Arr_All_Dt <- data.frame()
+
+for(i in 1998:2008){
+  year = i
+  FILE = paste('E:/FlightData/', i, ".csv", sep = '')
+  
+  Dt <- readr::read_csv(file = FILE) %>% 
+    dplyr::mutate(HH_MM_Dep = format(strptime(sprintf("%04d", CRSDepTime), format="%H%M"), format = "%H:%M"),
+                  HH_MM_Arr = format(strptime(sprintf("%04d", CRSArrTime), format="%H%M"), format = "%H:%M"),
+                  # Binning Scheduled dep time
+                  Dep_Time = paste(Month,'-',DayofMonth,'-',Year, ' ',HH_MM_Dep, sep = ''),
+                  Dep_Date_Time = mdy_hm(Dep_Time),
+                  Bins_Dep_Date = cut(Dep_Date_Time, breaks = '2 hours'),
+                  # Binning Scheduled arr time
+                  Arr_Time = paste(Month,'-',DayofMonth,'-',Year, ' ',HH_MM_Arr, sep = ''),
+                  Arr_Date_Time = mdy_hm(Arr_Time),
+                  Bins_Arr_Date = cut(Arr_Date_Time, breaks = '2 hours'))
+  
+  New_Dep_All_Dt <- Dt %>% 
+    dplyr::group_by(Bins_Dep_Date) %>% 
+    dplyr::summarise(Count = n(), 
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Arr_Delay = mean(ArrDelay, na.rm = TRUE),
+            Avg_Distance = mean(Distance, na.rm = TRUE),
+            Avg_Taxi_In = mean(TaxiIn, na.rm = TRUE),
+            Avg_Taxi_Out = mean(TaxiOut, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(Year = year)
+  
+  New_Arr_All_Dt <- Dt %>% 
+    dplyr::group_by(Bins_Arr_Date) %>% 
+    dplyr::summarise(Count = n(), 
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Arr_Delay = mean(ArrDelay, na.rm = TRUE),
+            Avg_Distance = mean(Distance, na.rm = TRUE),
+            Avg_Taxi_In = mean(TaxiIn, na.rm = TRUE),
+            Avg_Taxi_Out = mean(TaxiOut, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(Year = year)
+  
+  # Day Summarise DEP  
+  new_Day_Dep <- Dt %>% 
+    dplyr::mutate(Dep_Time_Bins = cut(DepTime, breaks = seq(0, 2400, by = 200))) %>% 
+    dplyr::group_by(Dep_Time_Bins) %>% 
+    dplyr::summarise(Count = n(), 
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Arr_Delay = mean(ArrDelay, na.rm = TRUE),
+            Avg_Distance = mean(Distance, na.rm = TRUE),
+            Avg_Taxi_In = mean(TaxiIn, na.rm = TRUE),
+            Avg_Taxi_Out = mean(TaxiOut, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(Year = year)
+  
+  # Day Summarise Arr
+  new_Day_Arr <- Dt %>% 
+    dplyr::mutate(Arr_Time_Bins = cut(ArrTime, breaks = seq(0, 2400, by = 200))) %>% 
+    dplyr::group_by(Arr_Time_Bins) %>% 
+    dplyr::summarise(Count = n(), 
+            Avg_Dep_Delay = mean(DepDelay, na.rm = TRUE),
+            Avg_Arr_Delay = mean(ArrDelay, na.rm = TRUE),
+            Avg_Distance = mean(Distance, na.rm = TRUE),
+            Avg_Taxi_In = mean(TaxiIn, na.rm = TRUE),
+            Avg_Taxi_Out = mean(TaxiOut, na.rm = TRUE),
+            Total_Num_Cancelled = sum(Cancelled == '1', na.rm = TRUE),
+            Cancelled_Reason_Carrier = sum(CancellationCode == 'A',na.rm = TRUE),
+            Cancelled_Reason_Weather = sum(CancellationCode == 'B',na.rm = TRUE),
+            Cancelled_Reason_Security = sum(CancellationCode == 'D',na.rm = TRUE),
+            Cancelled_Reason_NAS = sum(CancellationCode == 'C',na.rm = TRUE),
+            Total_Carrier_Delay_Mins = sum(as.numeric(CarrierDelay), na.rm = TRUE),
+            Total_Weather_Delay_Mins = sum(as.numeric(WeatherDelay), na.rm = TRUE),
+            Total_NAS_Delay_Mins = sum(as.numeric(NASDelay), na.rm = TRUE),
+            Total_Security_Delay_Mins = sum(as.numeric(SecurityDelay), na.rm = TRUE),
+            Total_LateAircraft_Delay_Mins = sum(as.numeric(LateAircraftDelay), na.rm = TRUE)) %>% 
+    dplyr::mutate(Year = year)
+  
+  # Remove the data and clear the memory
+  rm(Dt)
+  Day_Dep <- rbind(Day_Dep, new_Day_Dep)
+  Day_Arr <- rbind(Day_Arr, new_Day_Arr)
+  Dep_All_Dt <- rbind(Dep_All_Dt, New_Dep_All_Dt)
+  Arr_All_Dt <- rbind(Arr_All_Dt, New_Arr_All_Dt)
+
+}
