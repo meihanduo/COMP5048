@@ -1,0 +1,12 @@
+
+
+
+all_worst_flight_routes %>% 
+  mutate(index =  rep(seq(1,100,by=1),22)) %>% 
+  filter(index <= 5) %>% 
+  ggplot(aes(x = factor(Edges), y = Cancel_Prob))+
+  geom_bar(aes(fill = factor(Edges)), position = 'dodge', stat = 'identity') + 
+  geom_text(aes(label = Edges)) + 
+  facet_wrap(~ Year) +
+  theme_bw()
+
