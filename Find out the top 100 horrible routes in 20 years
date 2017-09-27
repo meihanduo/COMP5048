@@ -1,10 +1,9 @@
-
 # In order to find out which are the worst flight routes in each year from 1987 to 2008
 library(tidyverse)
 
 Worst_Flight_In_Each_Year <- data.frame()
 
-AirPort_All <- read.csv("~/Documents/USYD/COMP5048/Group_Project/Air_Port_Locations.txt", 
+AirPort_All <- read.csv("F:/FlightData/Air_Port_Locations.txt", 
                         sep = ',', header = F) %>% 
   dplyr::filter(V4 == "United States" | V5 %in% c('SJU','STT','STX', 'BQN', 'PSE')) %>% 
   dplyr::select(CT_Code = V5, AirportName = V2, City = V3, Country = V4,
@@ -15,7 +14,7 @@ AirPort_All <- read.csv("~/Documents/USYD/COMP5048/Group_Project/Air_Port_Locati
 
 for(i in 1998:2008){
   year = i
-  FILE = paste('E:/FlightData/', year, ".csv", sep = '')
+  FILE = paste('F:/FlightData/', year, ".csv", sep = '')
   Flight_Data <- readr::read_csv(file = FILE) 
   
   
@@ -41,8 +40,28 @@ for(i in 1998:2008){
   
   # The worst flight
   new_Worst_Flight_In_Each_Year <- Grouped_Data %>% dplyr::filter(Frequency > 100) %>% dplyr::arrange(desc(Cancel_Prob))
-  
+  rm(Grouped_Data)
   
   Worst_Flight_In_Each_Year = rbind(Worst_Flight_In_Each_Year, new_Worst_Flight_In_Each_Year[1:100, ])
-  
 }
+
+Worst_Flight_In_Each_Year <- Worst_Flight_In_Each_Year %>% 
+  mutate(Year = rep(1998:2008, each = 100))
+
+Worst_Flight_In_Each_Year <- Worst_Flight_In_Each_Year[, -9]
+
+write.csv(Worst_Flight_In_Each_Year, "Worst_Routes_9808.csv")
+
+################################################################################################################
+###################################        Merge two result data sets        ###################################
+################################################################################################################
+
+WF_9808 <- read_csv("F:/FlightData/Worst_Routes_9808.csv")
+WF_8797 <- read_csv("F:/FlightData/Worst_Routes_8797.csv")
+
+# Worst Fligt Routes in each year from 1987 to 2008 based on the flight cancel rate
+
+all_worst_flight_routes <- rbind(WF_8797[,-1],WF_9808[,-1])
+
+write.csv(all_worst_flight_routes, 'Worst_Flight_Routes8708.csv')
+
