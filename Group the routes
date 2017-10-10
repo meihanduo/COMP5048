@@ -1,0 +1,55 @@
+
+library(tidyverse)
+
+Routes_87_08 <- data.frame()
+
+for(i in 1987:2008){
+  year = i
+  FILE = paste('~/Documents/USYD/COMP5048/Group_Project/', 1987, ".csv", sep = '')
+  Flight_Data <- read_csv(file = FILE)
+  
+  rm1 <- dplyr::left_join(Flight_Data, AirPort_All, by = 'Origin')
+  rm2 <- dplyr::left_join(Flight_Data, AirPort_All, by = 'Dest')
+  
+  Flight_Data <- data.frame(rm1[,c(1:2,9, 10)], 
+                            Origin = rm1$City, O = rm1$Origin,
+                            Origin_Lat = rm1$Lat, Origin_Lon = rm1$Lon, Origin_Att = rm1$Attitude, 
+                            Dest = rm2$City, D = rm2$Dest,
+                            Dest_Lat = rm2$Lat, Dest_Lon = rm2$Lon, Dest_Att = rm2$Attitude,
+                            Distance = rm1$Distance, TaxiIn= rm1$TaxiIn, TaxiOut = rm1$TaxiOut,
+                            Cancelled = rm1$Cancelled,
+                            DepDelay = rm1$DepDelay,
+                            ArrDelay = rm1$ArrDelay,
+                            rm1[, c(23,25:29)]
+                            ) %>% 
+    dplyr::mutate(Edges = paste(O, D, sep = "-"))
+  
+  rm(rm1)
+  rm(rm2)
+  
+  Grouped_Data <- Flight_Data %>% 
+  dplyr::group_by(Year, Edges, Origin, Dest,
+                  Origin_Lat, Origin_Lon, Origin_Att,
+                  Dest_Lat, Dest_Lon, Dest_Att) %>% 
+  dplyr::summarise(Frequency = n(), 
+                   Avg_Arr_Delay = mean(ArrDelay,na.rm = T), 
+                   Avg_Dep_Delay = mean(DepDelay,na.rm = T), 
+                   Avg_Taxi_In = mean(TaxiIn, na.rm = T),
+                   Avg_Taxi_Out = mean(TaxiOut, na.rm = T)),
+                   Cancel_Prob = sum(Cancelled, na.rm = T)/Frequency,
+                   Distance = mean(Distance,na.rm = T),
+                   Carrier_Cancel = sum(CancellationCode == 'A', na.rm = T),
+                   Weather_Cancel = sum(CancellationCode == 'B', na.rm = T),
+                   NAS_Cancel = sum(CancellationCode == 'C', na.rm = T),
+                   Security_Cancel = sum(CancellationCode == 'D', na.rm = T),
+                   CarrierDy_Mins = mean(CarrierDelay, na.rm = T),
+                   WeatherDy_Mins = mean(WeatherDelay, na.rm = T),
+                   NASDy_Mins = mean(NASDelay, na.rm = T),
+                   SecurityDy_Mins = mean(SecurityDelay, na.rm = T),
+                   LateAircraftDy_Mins = mean(LateAircraftDelay, na.rm = T)) 
+
+  Routes_87_08  <- rbind(Routes_87_08, Grouped_Data)
+
+  # Remove the data and clear the memory
+  rm(Grouped_Data)
+}
