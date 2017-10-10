@@ -1,11 +1,20 @@
 
 library(tidyverse)
 
+my_path = "C:/Users/hmei6896/Desktop/New folder/"
+AirPort_All <- read.csv(my_path, sep = ',', header = F) %>% 
+  dplyr::filter(V4 == "United States" | V5 %in% c('SJU','STT','STX', 'BQN', 'PSE')) %>% 
+  dplyr::select(CT_Code = V5, AirportName = V2, City = V3, Country = V4,
+                Lat = V7, Lon = V8, Attitude = V9) %>% 
+  dplyr::mutate(Origin = as.character(CT_Code),
+                Dest = as.character(CT_Code))
+                
+
 Routes_87_08 <- data.frame()
 
 for(i in 1987:2008){
   year = i
-  FILE = paste('C:/Users/hmei6896/Desktop/New folder/', 1987, ".csv", sep = '')
+  FILE = paste(my_path, i, ".csv", sep = '')
   Flight_Data <- read_csv(file = FILE)
   
   rm1 <- dplyr::left_join(Flight_Data, AirPort_All, by = 'Origin')
@@ -35,7 +44,7 @@ for(i in 1987:2008){
                    Avg_Arr_Delay = mean(ArrDelay,na.rm = T), 
                    Avg_Dep_Delay = mean(DepDelay,na.rm = T), 
                    Avg_Taxi_In = mean(TaxiIn, na.rm = T),
-                   Avg_Taxi_Out = mean(TaxiOut, na.rm = T)),
+                   Avg_Taxi_Out = mean(TaxiOut, na.rm = T),
                    Cancel_Prob = sum(Cancelled, na.rm = T)/Frequency,
                    Distance = mean(Distance,na.rm = T),
                    Carrier_Cancel = sum(CancellationCode == 'A', na.rm = T),
@@ -54,6 +63,9 @@ for(i in 1987:2008){
   rm(Grouped_Data)
   print(i)
   print(i)
-  print(i)
-  
+  print(i)  
 }
+
+write.csv( , '.csv')
+
+
