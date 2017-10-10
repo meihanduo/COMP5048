@@ -52,4 +52,8 @@ for(i in 1987:2008){
 
   # Remove the data and clear the memory
   rm(Grouped_Data)
+  print(i)
+  print(i)
+  print(i)
+  
 }
