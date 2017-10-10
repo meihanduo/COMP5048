@@ -5,7 +5,7 @@ Routes_87_08 <- data.frame()
 
 for(i in 1987:2008){
   year = i
-  FILE = paste('~/Documents/USYD/COMP5048/Group_Project/', 1987, ".csv", sep = '')
+  FILE = paste('C:/Users/hmei6896/Desktop/New folder/', 1987, ".csv", sep = '')
   Flight_Data <- read_csv(file = FILE)
   
   rm1 <- dplyr::left_join(Flight_Data, AirPort_All, by = 'Origin')
